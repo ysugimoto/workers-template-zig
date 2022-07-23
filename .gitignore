@@ -1,4 +1,4 @@
 zig-cache
 main.wasm
-wasmtest.js
+wasmtest.mjs
 node_modules

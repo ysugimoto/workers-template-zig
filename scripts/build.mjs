@@ -23,6 +23,7 @@ const wasm = {
       entryPoints: ["index.mjs"],
       bundle: true,
       format: "esm",
+      minify: true,
       outfile: path.join(dist, "index.mjs"),
       external: ["*.wasm"],
       plugins: [wasm],

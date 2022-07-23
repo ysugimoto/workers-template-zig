@@ -1,7 +1,7 @@
 import module from "./build/main.wasm";
 
-// Same as return char size of hello_world()
-const RET_POINTER_SIZE = 64;
+// Enough buffer size of shared memory region;
+const RET_POINTER_SIZE = 512;
 
 // Normally TextDecoder would be nice to decode,
 // But We decode manually because memories may not aligned and includes null byte in u32.
@@ -33,18 +33,66 @@ const decodeString = mem => {
   return out;
 };
 
+const encodeString = (mem, str) => {
+  const u32Arr = [];
+  for (let i = 0; i < str.length; i += 4) {
+    let u32 = 0;
+    u32 |= (str[i]) ? str[i].codePointAt(0) : 0;
+    u32 |= (str[i+1]) ? (str[i+1] .codePointAt(0) << 8) : 0;
+    u32 |= (str[i+2]) ? (str[i+2] .codePointAt(0) << 16) : 0;
+    u32 |= (str[i+3]) ? (str[i+3] .codePointAt(0) << 24) : 0;
+    u32Arr.push(u32);
+  }
+  mem.subarray(0, u32Arr.length).set(u32Arr);
+  return 0;
+}
+
+
 export default {
   async fetch(request, env) {
     const {
       exports: {
         memory,
-        hello_world,
+        hello,
+        greet,
+        add,
       },
     } = new WebAssembly.Instance(module, {});
-    const pointer = hello_world();
-    const mem = new Uint32Array(memory.buffer, pointer - (pointer % 4), RET_POINTER_SIZE);
-    const result = decodeString(mem);
+    const mem = new Uint32Array(memory.buffer);
+    const url = new URL(request.url);
+    let pointer, offset, body;
 
-    return new Response(result);
+    switch (url.pathname) {
+
+      // Call greet(), /greet?name=[name]
+      case "/greet":
+        const name = url.searchParams.get("name") || "Zig";
+        const arg = encodeString(mem, name);
+        pointer = greet(arg);
+        offset = pointer - (pointer%4);
+        body = decodeString(new Uint32Array(memory.buffer, offset, RET_POINTER_SIZE));
+        break;
+
+      // Call add()
+      case "/add":
+        const result = add(1 + 2);
+        body = `add() example, 1 + 2 = ${result}`;
+        break;
+
+      // Call hello()
+      case "/":
+        pointer = hello();
+        offset = pointer - (pointer%4);
+        body = decodeString(new Uint32Array(memory.buffer, offset, RET_POINTER_SIZE));
+        break;
+
+      // Not Found :-P
+      default:
+        return new Response("Not Found", {
+          status: 404,
+        });
+    }
+
+    return new Response(body);
   }
 }
