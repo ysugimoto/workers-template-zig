@@ -1,0 +1,4 @@
+zig-cache
+main.wasm
+wasmtest.js
+node_modules

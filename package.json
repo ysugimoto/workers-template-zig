@@ -1,0 +1,15 @@
+{
+  "name": "workers-template-zig",
+  "version": "1.0.0",
+  "main": "worker/index.mjs",
+  "repository": "git@github.com:ysugimoto/workers-template-zig.git",
+  "author": "ysugimoto <sugimoto@wnotes.net>",
+  "license": "MIT",
+  "devDependencies": {
+    "esbuild": "^0.14.47",
+    "wrangler": "^2.0.15"
+  },
+  "scripts": {
+    "build": "make && node ./scripts/build.mjs"
+  }
+}

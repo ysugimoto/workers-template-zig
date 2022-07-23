@@ -1,0 +1,13 @@
+name = "workers-template-zig"
+compatibility_date = "2022-06-27"
+main = "./worker/index.mjs"
+workers_dev = true
+
+[build]
+command = "yarn build"
+watch_dir = "./index.mjs"
+
+[[rules]]
+type = "CompiledWasm"
+globs = ["**/*.wasm"]
+
